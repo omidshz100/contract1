@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MealFunding DApp</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ffa726);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid #e9ecef;
+        }
+
+        .card h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .status h4 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .alert-info {
+            background: #cce7ff;
+            border: 1px solid #b3d9ff;
+            color: #004085;
+        }
+
+        .connection-status {
+            text-align: center;
+            padding: 20px;
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ MealFunding DApp</h1>
+            <p>Blockchain-based micro-investment system for funding individual meals</p>
+        </div>
+
+        <div id="connectionStatus" class="connection-status">
+            <strong>Please connect to MetaMask and ensure you're on the local network (localhost:8545)</strong>
+            <br><br>
+            <button id="connectButton" class="btn" onclick="connectWallet()">🔗 Connect Wallet</button>
+        </div>
+
+        <div class="main-content">
+            <!-- Funder Section -->
+            <div class="card">
+                <h3>💰 Fund Meals</h3>
+                <div class="form-group">
+                    <label for="fundAmount">Amount (AVAX)</label>
+                    <input type="number" id="fundAmount" placeholder="Enter amount to fund" step="0.01" min="0">
+                </div>
+                <button class="btn" onclick="fundContract()">Fund Contract</button>
+                
+                <div class="status">
+                    <h4>Your Funding Status</h4>
+                    <div class="status-item">
+                        <span>Your Balance:</span>
+                        <span id="userBalance">0 AVAX</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Your Contribution:</span>
+                        <span id="userContribution">0 AVAX</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recipient Section -->
+            <div class="card">
+                <h3>🍽️ Request Meal</h3>
+                <div class="form-group">
+                    <label for="requestAmount">Amount (AVAX)</label>
+                    <input type="number" id="requestAmount" placeholder="Enter meal cost" step="0.01" min="0">
+                </div>
+                <button class="btn" onclick="requestMeal()">Request Meal</button>
+                
+                <div class="status">
+                    <h4>Your Recipient Status</h4>
+                    <div class="status-item">
+                        <span>Approved:</span>
+                        <span id="isApproved">❌ No</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Daily Allowance:</span>
+                        <span id="dailyAllowance">0 AVAX</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Daily Spent:</span>
+                        <span id="dailySpent">0 AVAX</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contract Status -->
+            <div class="card">
+                <h3>📊 Contract Status</h3>
+                <div class="status">
+                    <div class="status-item">
+                        <span>Contract Address:</span>
+                        <span id="contractAddress">Not connected</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Total Funds:</span>
+                        <span id="totalFunds">0 AVAX</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Contract Balance:</span>
+                        <span id="contractBalance">0 AVAX</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Daily Limit:</span>
+                        <span id="dailyLimit">10 AVAX</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Status:</span>
+                        <span id="contractStatus">Active</span>
+                    </div>
+                </div>
+                <button class="btn" onclick="refreshStatus()" style="margin-top: 15px;">Refresh Status</button>
+            </div>
+
+            <!-- Owner Controls -->
+            <div class="card">
+                <h3>👑 Owner Controls</h3>
+                <div class="form-group">
+                    <label for="recipientAddress">Recipient Address</label>
+                    <input type="text" id="recipientAddress" placeholder="0x...">
+                </div>
+                <button class="btn" onclick="approveRecipient()" style="margin-bottom: 10px;">Approve Recipient</button>
+                <button class="btn" onclick="revokeRecipient()" style="margin-bottom: 10px;">Revoke Recipient</button>
+                <button class="btn" onclick="togglePause()">Toggle Pause</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Contract configuration
+        const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // Update this with your deployed contract address
+        const CONTRACT_ABI = [
+            "function fund() external payable",
+            "function requestMeal(uint256 amount) external",
+            "function approveRecipient(address recipient) external",
+            "function revokeRecipient(address recipient) external",
+            "function pause() external",
+            "function unpause() external",
+            "function owner() external view returns (address)",
+            "function paused() external view returns (bool)",
+            "function dailyLimit() external view returns (uint256)",
+            "function totalFunds() external view returns (uint256)",
+            "function funderBalances(address) external view returns (uint256)",
+            "function approvedRecipients(address) external view returns (bool)",
+            "function dailySpent(address) external view returns (uint256)",
+            "function getRemainingDailyAllowance(address) external view returns (uint256)",
+            "function getContractBalance() external view returns (uint256)",
+            "event FundsDeposited(address indexed funder, uint256 amount, uint256 newBalance)",
+            "event MealRequested(address indexed recipient, uint256 amount, uint256 remainingBalance)",
+            "event RecipientApproved(address indexed recipient)",
+            "event RecipientRevoked(address indexed recipient)"
+        ];
+
+        let provider;
+        let signer;
+        let contract;
+        let userAddress;
+
+        // Initialize the app
+        async function init() {
+            if (typeof window.ethereum !== 'undefined') {
+                // Check if already connected
+                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                if (accounts.length > 0) {
+                    await connectWallet();
+                }
+            } else {
+                showAlert('Please install MetaMask to use this DApp', 'error');
+                document.getElementById('connectionStatus').innerHTML = 
+                    '<strong>❌ MetaMask not detected. Please install MetaMask extension.</strong>';
+            }
+        }
+
+        // Connect wallet function
+        async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    await provider.send("eth_requestAccounts", []);
+                    signer = provider.getSigner();
+                    userAddress = await signer.getAddress();
+                    contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+                    
+                    // Check network
+                    const network = await provider.getNetwork();
+                    if (network.chainId !== 31337) {
+                        showAlert('Please switch to the Hardhat Local network (Chain ID: 31337)', 'error');
+                        document.getElementById('connectionStatus').innerHTML = 
+                            `<strong>⚠️ Wrong network detected. Please switch to Hardhat Local network.</strong><br><br>
+                            <button id="connectButton" class="btn" onclick="connectWallet()">🔗 Try Again</button>`;
+                        return;
+                    }
+                    
+                    document.getElementById('connectionStatus').innerHTML = 
+                        `<strong>✅ Connected to ${userAddress.substring(0, 6)}...${userAddress.substring(38)} on Hardhat Local</strong>`;
+                    document.getElementById('contractAddress').textContent = CONTRACT_ADDRESS;
+                    
+                    await refreshStatus();
+                    setupEventListeners();
+                } catch (error) {
+                    showAlert('Error connecting to MetaMask: ' + error.message, 'error');
+                    document.getElementById('connectionStatus').innerHTML = 
+                        `<strong>❌ Connection failed: ${error.message}</strong><br><br>
+                        <button id="connectButton" class="btn" onclick="connectWallet()">🔗 Try Again</button>`;
+                }
+            } else {
+                showAlert('Please install MetaMask to use this DApp', 'error');
+            }
+        }
+
+        // Setup event listeners for contract events
+        function setupEventListeners() {
+            contract.on("FundsDeposited", (funder, amount, newBalance) => {
+                if (funder.toLowerCase() === userAddress.toLowerCase()) {
+                    showAlert(`Successfully funded ${ethers.utils.formatEther(amount)} AVAX!`, 'success');
+                    refreshStatus();
+                }
+            });
+
+            contract.on("MealRequested", (recipient, amount, remainingBalance) => {
+                if (recipient.toLowerCase() === userAddress.toLowerCase()) {
+                    showAlert(`Successfully received ${ethers.utils.formatEther(amount)} AVAX for meal!`, 'success');
+                    refreshStatus();
+                }
+            });
+
+            contract.on("RecipientApproved", (recipient) => {
+                showAlert(`Recipient ${recipient.substring(0, 6)}...${recipient.substring(38)} approved!`, 'success');
+                refreshStatus();
+            });
+
+            contract.on("RecipientRevoked", (recipient) => {
+                showAlert(`Recipient ${recipient.substring(0, 6)}...${recipient.substring(38)} revoked!`, 'info');
+                refreshStatus();
+            });
+        }
+
+        // Fund the contract
+        async function fundContract() {
+            const amount = document.getElementById('fundAmount').value;
+            if (!amount || amount <= 0) {
+                showAlert('Please enter a valid amount', 'error');
+                return;
+            }
+
+            try {
+                const tx = await contract.fund({
+                    value: ethers.utils.parseEther(amount)
+                });
+                showAlert('Transaction submitted! Waiting for confirmation...', 'info');
+                await tx.wait();
+                document.getElementById('fundAmount').value = '';
+            } catch (error) {
+                showAlert('Error funding contract: ' + error.message, 'error');
+            }
+        }
+
+        // Request meal
+        async function requestMeal() {
+            const amount = document.getElementById('requestAmount').value;
+            if (!amount || amount <= 0) {
+                showAlert('Please enter a valid amount', 'error');
+                return;
+            }
+
+            try {
+                const tx = await contract.requestMeal(ethers.utils.parseEther(amount));
+                showAlert('Transaction submitted! Waiting for confirmation...', 'info');
+                await tx.wait();
+                document.getElementById('requestAmount').value = '';
+            } catch (error) {
+                showAlert('Error requesting meal: ' + error.message, 'error');
+            }
+        }
+
+        // Approve recipient
+        async function approveRecipient() {
+            const address = document.getElementById('recipientAddress').value;
+            if (!address || !ethers.utils.isAddress(address)) {
+                showAlert('Please enter a valid address', 'error');
+                return;
+            }
+
+            try {
+                const tx = await contract.approveRecipient(address);
+                showAlert('Transaction submitted! Waiting for confirmation...', 'info');
+                await tx.wait();
+                document.getElementById('recipientAddress').value = '';
+            } catch (error) {
+                showAlert('Error approving recipient: ' + error.message, 'error');
+            }
+        }
+
+        // Revoke recipient
+        async function revokeRecipient() {
+            const address = document.getElementById('recipientAddress').value;
+            if (!address || !ethers.utils.isAddress(address)) {
+                showAlert('Please enter a valid address', 'error');
+                return;
+            }
+
+            try {
+                const tx = await contract.revokeRecipient(address);
+                showAlert('Transaction submitted! Waiting for confirmation...', 'info');
+                await tx.wait();
+                document.getElementById('recipientAddress').value = '';
+            } catch (error) {
+                showAlert('Error revoking recipient: ' + error.message, 'error');
+            }
+        }
+
+        // Toggle pause
+        async function togglePause() {
+            try {
+                const isPaused = await contract.paused();
+                const tx = isPaused ? await contract.unpause() : await contract.pause();
+                showAlert('Transaction submitted! Waiting for confirmation...', 'info');
+                await tx.wait();
+            } catch (error) {
+                showAlert('Error toggling pause: ' + error.message, 'error');
+            }
+        }
+
+        // Refresh status
+        async function refreshStatus() {
+            try {
+                // User balance
+                const balance = await provider.getBalance(userAddress);
+                document.getElementById('userBalance').textContent = 
+                    parseFloat(ethers.utils.formatEther(balance)).toFixed(4) + ' AVAX';
+
+                // User contribution
+                const contribution = await contract.funderBalances(userAddress);
+                document.getElementById('userContribution').textContent = 
+                    parseFloat(ethers.utils.formatEther(contribution)).toFixed(4) + ' AVAX';
+
+                // Recipient status
+                const isApproved = await contract.approvedRecipients(userAddress);
+                document.getElementById('isApproved').textContent = isApproved ? '✅ Yes' : '❌ No';
+
+                const dailyAllowance = await contract.getRemainingDailyAllowance(userAddress);
+                document.getElementById('dailyAllowance').textContent = 
+                    parseFloat(ethers.utils.formatEther(dailyAllowance)).toFixed(4) + ' AVAX';
+
+                const dailySpent = await contract.dailySpent(userAddress);
+                document.getElementById('dailySpent').textContent = 
+                    parseFloat(ethers.utils.formatEther(dailySpent)).toFixed(4) + ' AVAX';
+
+                // Contract status
+                const totalFunds = await contract.totalFunds();
+                document.getElementById('totalFunds').textContent = 
+                    parseFloat(ethers.utils.formatEther(totalFunds)).toFixed(4) + ' AVAX';
+
+                const contractBalance = await contract.getContractBalance();
+                document.getElementById('contractBalance').textContent = 
+                    parseFloat(ethers.utils.formatEther(contractBalance)).toFixed(4) + ' AVAX';
+
+                const dailyLimit = await contract.dailyLimit();
+                document.getElementById('dailyLimit').textContent = 
+                    parseFloat(ethers.utils.formatEther(dailyLimit)).toFixed(4) + ' AVAX';
+
+                const isPaused = await contract.paused();
+                document.getElementById('contractStatus').textContent = isPaused ? 'Paused' : 'Active';
+
+            } catch (error) {
+                console.error('Error refreshing status:', error);
+            }
+        }
+
+        // Show alert
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            
+            const container = document.querySelector('.container');
+            container.insertBefore(alertDiv, container.firstChild.nextSibling);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

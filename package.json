@@ -1,0 +1,37 @@
+{
+  "name": "meal-funding-contract",
+  "version": "1.0.0",
+  "description": "Blockchain-based micro-investment system for funding individual meals on Avalanche C-Chain",
+  "main": "index.js",
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test",
+    "deploy:local": "npx hardhat run scripts/deploy.js --network localhost",
+    "deploy:fuji": "npx hardhat run scripts/deploy.js --network fuji",
+    "deploy:mainnet": "npx hardhat run scripts/deploy.js --network mainnet",
+    "simulate": "node simulation.js",
+    "verify": "npx hardhat verify --network fuji"
+  },
+  "keywords": [
+    "solidity",
+    "avalanche",
+    "blockchain",
+    "smart-contract",
+    "meal-funding",
+    "micro-investment"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@nomiclabs/hardhat-etherscan": "^3.1.7",
+    "@nomiclabs/hardhat-waffle": "^2.0.6",
+    "chai": "^4.3.7",
+    "ethereum-waffle": "^4.0.10",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.17.1"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1"
+  }
+}
